@@ -1,0 +1,48 @@
+classDiagram
+    class Owner {
+        +String name
+        +String email
+        +int available_minutes
+        +List~Pet~ pets
+        +add_pet(pet: Pet) void
+        +remove_pet(pet_name: String) void
+        +list_pets() List~Pet~
+        +get_all_tasks() List~Task~
+    }
+
+    class Pet {
+        +String name
+        +String species
+        +String breed
+        +int age
+        +List~Task~ tasks
+        +add_task(task: Task) void
+        +remove_task(task_description: String) void
+        +modify_task(task_description: String, updates: dict) void
+        +list_tasks() List~Task~
+    }
+
+    class Task {
+        +String description
+        +int duration_minutes
+        +String priority
+        +String frequency
+        +date due_date
+        +bool is_complete
+        +mark_complete() void
+        +is_overdue() bool
+        +is_due_today() bool
+    }
+
+    class Scheduler {
+        +Owner owner
+        +int total_minutes_available
+        +generate_plan() List~Task~
+        +get_reasoning() List~String~
+        +filter_by_priority(priority: String) List~Task~
+        +sort_by_priority() List~Task~
+    }
+
+    Owner "1" --> "1..*" Pet : owns
+    Pet "1" --> "0..*" Task : has
+    Scheduler "1" --> "1" Owner : schedules for

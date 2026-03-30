@@ -2,6 +2,7 @@
 
 ## 1. System Design
 
+PawPal+ is a smart planner for people with pet. It allow the use to input a list of tasks such walking their pet, going to the vet, feeding, etc and the program will output a daily plan that will account for the user availability and time preferences. The program will also explain its reasoning for its plan.
 **a. Initial design**
 
 - Briefly describe your initial UML design.
