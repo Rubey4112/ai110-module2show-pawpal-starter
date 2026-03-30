@@ -8,10 +8,20 @@ PawPal+ is a smart planner for people with pet. It allow the use to input a list
 - Briefly describe your initial UML design.
 - What classes did you include, and what responsibilities did you assign to each?
 
+Task — Represents a single pet care activity with attributes like description, duration, priority, frequency, and due date. Provides methods to mark it complete and check whether it is overdue or due today.
+
+Pet — Stores a pet's profile (name, species, breed, age) along with a list of associated Task objects. Provides methods to add, remove, modify, and list its tasks.
+
+Owner — Holds an owner's name, email, and daily available time budget, plus a collection of their Pet objects. Provides methods to add, remove, and list pets, as well as retrieve all tasks across every pet.
+
+Scheduler — Takes an Owner and uses their available time and pets' tasks to generate an ordered daily care plan. Provides methods to filter and sort tasks by priority and to return human-readable reasoning behind the schedule.
+
 **b. Design changes**
 
 - Did your design change during implementation?
 - If yes, describe at least one change and why you made it.
+
+The Task priority attribute now store a Priority Enum rather than a string so that it will be less like for me to cause a bug during programming due to incosistent casing or typo when setting task priority.
 
 ---
 

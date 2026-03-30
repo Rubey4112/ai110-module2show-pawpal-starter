@@ -1,17 +1,34 @@
 from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import date
+from enum import Enum
 from typing import Optional
+from uuid import uuid4
+
+
+class Priority(Enum):
+    HIGH = "high"
+    MEDIUM = "medium"
+    LOW = "low"
+
+
+@dataclass
+class SchedulePlan:
+    tasks: list[Task]
+    reasoning: list[str]
+    remaining_minutes: int
 
 
 @dataclass
 class Task:
     description: str
     duration_minutes: int
-    priority: str           # e.g. "high", "medium", "low"
+    priority: Priority
     frequency: str          # e.g. "daily", "weekly", "once"
     due_date: Optional[date] = None
     is_complete: bool = False
+    id: str = field(default_factory=lambda: str(uuid4()))
+    pet: Optional[Pet] = field(default=None, repr=False)
 
     def mark_complete(self) -> None:
         raise NotImplementedError
@@ -30,14 +47,15 @@ class Pet:
     breed: str
     age: int
     tasks: list[Task] = field(default_factory=list)
+    owner: Optional[Owner] = field(default=None, repr=False)
 
     def add_task(self, task: Task) -> None:
         raise NotImplementedError
 
-    def remove_task(self, task_description: str) -> None:
+    def remove_task(self, task_id: str) -> None:
         raise NotImplementedError
 
-    def modify_task(self, task_description: str, updates: dict) -> None:
+    def modify_task(self, task_id: str, updates: dict) -> None:
         raise NotImplementedError
 
     def list_tasks(self) -> list[Task]:
@@ -68,15 +86,16 @@ class Scheduler:
     def __init__(self, owner: Owner):
         self.owner = owner
         self.total_minutes_available: int = owner.available_minutes
+        self._cached_plan: Optional[SchedulePlan] = None
 
-    def generate_plan(self) -> list[Task]:
+    def generate_plan(self) -> SchedulePlan:
         raise NotImplementedError
 
-    def get_reasoning(self) -> list[str]:
+    def filter_by_priority(self, priority: Priority, tasks: Optional[list[Task]] = None) -> list[Task]:
         raise NotImplementedError
 
-    def filter_by_priority(self, priority: str) -> list[Task]:
+    def sort_by_priority(self, tasks: Optional[list[Task]] = None) -> list[Task]:
         raise NotImplementedError
 
-    def sort_by_priority(self) -> list[Task]:
+    def remaining_minutes(self, tasks: list[Task]) -> int:
         raise NotImplementedError
