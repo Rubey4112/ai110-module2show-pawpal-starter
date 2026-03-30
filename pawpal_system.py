@@ -31,14 +31,17 @@ class Task:
     pet: Optional[Pet] = field(default=None, repr=False)
 
     def mark_complete(self) -> None:
+        """Mark this task as completed."""
         self.is_complete = True
 
     def is_overdue(self) -> bool:
+        """Return True if the task has a past due date and is not complete."""
         if self.due_date is None or self.is_complete:
             return False
         return self.due_date < date.today()
 
     def is_due_today(self) -> bool:
+        """Return True if the task's due date is today."""
         if self.due_date is None:
             return False
         return self.due_date == date.today()
@@ -54,13 +57,16 @@ class Pet:
     owner: Optional[Owner] = field(default=None, repr=False)
 
     def add_task(self, task: Task) -> None:
+        """Append a task to this pet's task list and set its pet reference."""
         task.pet = self
         self.tasks.append(task)
 
     def remove_task(self, task_id: str) -> None:
+        """Remove the task with the given ID from this pet's task list."""
         self.tasks = [t for t in self.tasks if t.id != task_id]
 
     def modify_task(self, task_id: str, updates: dict) -> None:
+        """Update fields of the task matching task_id with values from updates."""
         for task in self.tasks:
             if task.id == task_id:
                 for key, value in updates.items():
@@ -69,6 +75,7 @@ class Pet:
                 return
 
     def list_tasks(self) -> list[Task]:
+        """Return a shallow copy of this pet's task list."""
         return list(self.tasks)
 
 
@@ -80,16 +87,20 @@ class Owner:
         self.pets: list[Pet] = []
 
     def add_pet(self, pet: Pet) -> None:
+        """Add a pet to this owner's list and set its owner reference."""
         pet.owner = self
         self.pets.append(pet)
 
     def remove_pet(self, pet_name: str) -> None:
+        """Remove the pet with the given name from this owner's list."""
         self.pets = [p for p in self.pets if p.name != pet_name]
 
     def list_pets(self) -> list[Pet]:
+        """Return a shallow copy of this owner's pet list."""
         return list(self.pets)
 
     def get_all_tasks(self) -> list[Task]:
+        """Return a flat list of all tasks across every pet."""
         return [task for pet in self.pets for task in pet.tasks]
 
 
@@ -100,6 +111,7 @@ class Scheduler:
         self._cached_plan: Optional[SchedulePlan] = None
 
     def generate_plan(self) -> SchedulePlan:
+        """Build and return a priority-ordered schedule that fits within available time."""
         all_tasks = self.owner.get_all_tasks()
         incomplete = [t for t in all_tasks if not t.is_complete]
         sorted_tasks = self.sort_by_priority(incomplete)
@@ -133,14 +145,17 @@ class Scheduler:
         return self._cached_plan
 
     def filter_by_priority(self, priority: Priority, tasks: Optional[list[Task]] = None) -> list[Task]:
+        """Return only the tasks that match the given priority level."""
         source = tasks if tasks is not None else self.owner.get_all_tasks()
         return [t for t in source if t.priority == priority]
 
     def sort_by_priority(self, tasks: Optional[list[Task]] = None) -> list[Task]:
+        """Sort tasks high-to-low by priority, with overdue and due-today tasks first."""
         source = tasks if tasks is not None else self.owner.get_all_tasks()
         order = {Priority.HIGH: 0, Priority.MEDIUM: 1, Priority.LOW: 2}
         return sorted(source, key=lambda t: (order[t.priority], not t.is_overdue(), not t.is_due_today()))
 
     def remaining_minutes(self, tasks: list[Task]) -> int:
+        """Return available minutes minus the total duration of the given tasks."""
         used = sum(t.duration_minutes for t in tasks)
         return self.total_minutes_available - used
