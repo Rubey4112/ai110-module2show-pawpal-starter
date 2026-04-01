@@ -1,6 +1,6 @@
 from __future__ import annotations
-from dataclasses import dataclass, field
-from datetime import date
+from dataclasses import dataclass, field, replace
+from datetime import date, timedelta
 from enum import Enum
 from typing import Optional
 from uuid import uuid4
@@ -30,9 +30,25 @@ class Task:
     id: str = field(default_factory=lambda: str(uuid4()))
     pet: Optional[Pet] = field(default=None, repr=False)
 
-    def mark_complete(self) -> None:
-        """Mark this task as completed."""
+    def mark_complete(self) -> Optional[Task]:
+        """Mark this task as completed.
+
+        For 'daily' and 'weekly' tasks, automatically adds the next occurrence
+        to the pet with a new due date (today + 1 day or today + 7 days).
+        Returns the newly created task, or None if no recurrence applies.
+        """
         self.is_complete = True
+        recurrence_days = {"daily": 1, "weekly": 7}
+        if self.frequency in recurrence_days and self.pet is not None:
+            next_task = replace(
+                self,
+                due_date=date.today() + timedelta(days=recurrence_days[self.frequency]),
+                is_complete=False,
+                id=str(uuid4()),
+            )
+            self.pet.add_task(next_task)
+            return next_task
+        return None
 
     def is_overdue(self) -> bool:
         """Return True if the task has a past due date and is not complete."""
@@ -77,6 +93,10 @@ class Pet:
     def list_tasks(self) -> list[Task]:
         """Return a shallow copy of this pet's task list."""
         return list(self.tasks)
+
+    def filter_by_status(self, completed: bool) -> list[Task]:
+        """Return tasks matching the given completion status."""
+        return [t for t in self.tasks if t.is_complete == completed]
 
 
 class Owner:
@@ -144,6 +164,11 @@ class Scheduler:
         )
         return self._cached_plan
 
+    def filter_by_status(self, completed: bool, tasks: Optional[list[Task]] = None) -> list[Task]:
+        """Return tasks matching the given completion status across all pets."""
+        source = tasks if tasks is not None else self.owner.get_all_tasks()
+        return [t for t in source if t.is_complete == completed]
+
     def filter_by_priority(self, priority: Priority, tasks: Optional[list[Task]] = None) -> list[Task]:
         """Return only the tasks that match the given priority level."""
         source = tasks if tasks is not None else self.owner.get_all_tasks()
@@ -154,6 +179,11 @@ class Scheduler:
         source = tasks if tasks is not None else self.owner.get_all_tasks()
         order = {Priority.HIGH: 0, Priority.MEDIUM: 1, Priority.LOW: 2}
         return sorted(source, key=lambda t: (order[t.priority], not t.is_overdue(), not t.is_due_today()))
+
+    def sort_by_time(self, tasks: Optional[list[Task]] = None) -> list[Task]:
+        """Sort tasks by due_date ascending. Tasks without a due date sort to the end."""
+        source = tasks if tasks is not None else self.owner.get_all_tasks()
+        return sorted(source, key=lambda t: (t.due_date is None, t.due_date or date.min))
 
     def remaining_minutes(self, tasks: list[Task]) -> int:
         """Return available minutes minus the total duration of the given tasks."""

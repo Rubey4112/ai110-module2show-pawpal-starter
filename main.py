@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 from pawpal_system import Owner, Pet, Task, Priority, Scheduler
 
 # --- Setup ---
@@ -24,14 +24,14 @@ buddy.add_task(Task(
     duration_minutes=15,
     priority=Priority.MEDIUM,
     frequency="weekly",
-    due_date=date.today(),
+    due_date=date.today() + timedelta(days=3),
 ))
 
 # --- Tasks for Whiskers ---
 whiskers.add_task(Task(
     description="Clean litter box",
     duration_minutes=10,
-    priority=Priority.HIGH,
+    priority=Priority.LOW,
     frequency="daily",
     due_date=date.today(),
 ))
