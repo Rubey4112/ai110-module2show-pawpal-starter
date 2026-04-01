@@ -32,10 +32,14 @@ The Task priority attribute now store a Priority Enum rather than a string so th
 - What constraints does your scheduler consider (for example: time, priority, preferences)?
 - How did you decide which constraints mattered most?
 
+The scheduler consider time and priority constraints. It priorize task that are due today and then focuses on task that arehigh priority.
+
 **b. Tradeoffs**
 
 - Describe one tradeoff your scheduler makes.
 - Why is that tradeoff reasonable for this scenario?
+
+One of my scheduler it sort task sequentially. This make the scheduling logic a lot simpler, ensure no overlapping conflict, and works better for the user since the scheduler doesn't know other non-pet related tasks in the user schedule.
 
 ---
 

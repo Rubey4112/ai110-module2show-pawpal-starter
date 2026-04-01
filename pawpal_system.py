@@ -29,6 +29,14 @@ class Task:
     is_complete: bool = False
     id: str = field(default_factory=lambda: str(uuid4()))
     pet: Optional[Pet] = field(default=None, repr=False)
+    start_minute: Optional[int] = field(default=None, repr=False)
+
+    @property
+    def end_minute(self) -> Optional[int]:
+        """Exclusive end time in minutes; None if start_minute is not set."""
+        if self.start_minute is None:
+            return None
+        return self.start_minute + self.duration_minutes
 
     def mark_complete(self) -> Optional[Task]:
         """Mark this task as completed.
@@ -130,32 +138,42 @@ class Scheduler:
         self.total_minutes_available: int = owner.available_minutes
         self._cached_plan: Optional[SchedulePlan] = None
 
+    def _pet_label(self, task: Task) -> str:
+        return f"{task.pet.name}'s " if task.pet else ""
+
     def generate_plan(self) -> SchedulePlan:
         """Build and return a priority-ordered schedule that fits within available time."""
-        all_tasks = self.owner.get_all_tasks()
-        incomplete = [t for t in all_tasks if not t.is_complete]
-        sorted_tasks = self.sort_by_priority(incomplete)
+        sorted_tasks = self.sort_by_priority(
+            [t for t in self.owner.get_all_tasks() if not t.is_complete]
+        )
 
         scheduled: list[Task] = []
         reasoning: list[str] = []
         minutes_used = 0
 
         for task in sorted_tasks:
-            pet_label = f"{task.pet.name}'s " if task.pet else ""
-            if minutes_used + task.duration_minutes <= self.total_minutes_available:
+            label = self._pet_label(task)
+            remaining = self.total_minutes_available - minutes_used
+            if task.duration_minutes <= remaining:
+                task.start_minute = minutes_used
                 scheduled.append(task)
                 minutes_used += task.duration_minutes
-                note = f"Scheduled: {pet_label}'{task.description}' ({task.priority.value} priority, {task.duration_minutes} min)"
-                if task.is_overdue():
-                    note += " [OVERDUE]"
-                elif task.is_due_today():
-                    note += " [due today]"
-                reasoning.append(note)
+                tag = " [OVERDUE]" if task.is_overdue() else " [due today]" if task.is_due_today() else ""
+                reasoning.append(
+                    f"Scheduled: {label}'{task.description}' ({task.priority.value} priority, "
+                    f"{task.duration_minutes} min, starts at min {task.start_minute}){tag}"
+                )
             else:
                 reasoning.append(
-                    f"Skipped: {pet_label}'{task.description}' — not enough time remaining "
-                    f"({task.duration_minutes} min needed, {self.total_minutes_available - minutes_used} min left)"
+                    f"Skipped: {label}'{task.description}' — not enough time remaining "
+                    f"({task.duration_minutes} min needed, {remaining} min left)"
                 )
+
+        for a, b in self.detect_conflicts(scheduled):
+            reasoning.append(
+                f"CONFLICT: {self._pet_label(a)}'{a.description}' (min {a.start_minute}–{a.end_minute}) "
+                f"overlaps {self._pet_label(b)}'{b.description}' (min {b.start_minute}–{b.end_minute})"
+            )
 
         self._cached_plan = SchedulePlan(
             tasks=scheduled,
@@ -163,6 +181,21 @@ class Scheduler:
             remaining_minutes=self.total_minutes_available - minutes_used,
         )
         return self._cached_plan
+
+    def detect_conflicts(self, tasks: Optional[list[Task]] = None) -> list[tuple[Task, Task]]:
+        """Return all pairs of tasks whose scheduled time intervals overlap.
+
+        Only tasks with ``start_minute`` set are considered. Works across pets
+        (the owner can only do one thing at a time) and within the same pet.
+        """
+        source = [t for t in (tasks or self.owner.get_all_tasks()) if t.start_minute is not None]
+        conflicts: list[tuple[Task, Task]] = []
+        for i, a in enumerate(source):
+            for b in source[i + 1:]:
+                assert a.start_minute is not None and b.start_minute is not None
+                if a.start_minute < b.start_minute + b.duration_minutes and b.start_minute < a.start_minute + a.duration_minutes:
+                    conflicts.append((a, b))
+        return conflicts
 
     def filter_by_status(self, completed: bool, tasks: Optional[list[Task]] = None) -> list[Task]:
         """Return tasks matching the given completion status across all pets."""

@@ -19,6 +19,22 @@ buddy.add_task(Task(
     frequency="daily",
     due_date=date.today(),
 ))
+
+# --- Scheduling Conflict: both tasks due at the same time ---
+buddy.add_task(Task(
+    description="Vet appointment",
+    duration_minutes=60,
+    priority=Priority.HIGH,
+    frequency="monthly",
+    due_date=date.today(),
+))
+whiskers.add_task(Task(
+    description="Grooming session",
+    duration_minutes=45,
+    priority=Priority.HIGH,
+    frequency="monthly",
+    due_date=date.today(),
+))
 buddy.add_task(Task(
     description="Brush fur",
     duration_minutes=15,
