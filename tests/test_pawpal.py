@@ -150,6 +150,50 @@ def test_scheduler_filter_by_status_across_pets():
     assert all(t.is_complete for t in complete)
 
 
+# --- Sort by priority / urgency tie-break tests ---
+
+def test_sort_by_priority_overdue_before_due_today_same_priority():
+    """Within the same priority tier, overdue tasks must come before due-today tasks."""
+    owner = Owner(name="Alice", email="alice@example.com", available_minutes=120)
+    pet = Pet(name="Buddy", species="dog", breed="Labrador", age=2)
+    owner.add_pet(pet)
+
+    today = date.today()
+    t_due_today = Task(description="Bath", duration_minutes=20, priority=Priority.HIGH, frequency="once",
+                       due_date=today)
+    t_overdue = Task(description="Vet visit", duration_minutes=30, priority=Priority.HIGH, frequency="once",
+                     due_date=today - timedelta(days=2))
+    pet.add_task(t_due_today)
+    pet.add_task(t_overdue)
+
+    scheduler = Scheduler(owner)
+    sorted_tasks = scheduler.sort_by_priority()
+
+    assert sorted_tasks[0].description == "Vet visit"   # overdue first
+    assert sorted_tasks[1].description == "Bath"
+
+
+def test_sort_by_priority_high_beats_overdue_medium():
+    """A HIGH-priority future task must rank above an overdue MEDIUM task."""
+    owner = Owner(name="Bob", email="bob@example.com", available_minutes=120)
+    pet = Pet(name="Mittens", species="cat", breed="Tabby", age=3)
+    owner.add_pet(pet)
+
+    today = date.today()
+    t_high_future = Task(description="Insulin shot", duration_minutes=10, priority=Priority.HIGH, frequency="daily",
+                         due_date=today + timedelta(days=5))
+    t_medium_overdue = Task(description="Flea treatment", duration_minutes=15, priority=Priority.MEDIUM,
+                            frequency="weekly", due_date=today - timedelta(days=3))
+    pet.add_task(t_medium_overdue)
+    pet.add_task(t_high_future)
+
+    scheduler = Scheduler(owner)
+    sorted_tasks = scheduler.sort_by_priority()
+
+    assert sorted_tasks[0].description == "Insulin shot"    # HIGH wins regardless of urgency
+    assert sorted_tasks[1].description == "Flea treatment"
+
+
 # --- Sort by due date tests ---
 
 def test_sort_by_time_orders_tasks_ascending():
