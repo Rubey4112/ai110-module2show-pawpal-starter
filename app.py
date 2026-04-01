@@ -62,24 +62,67 @@ if not pets:
     st.info("No pets yet. Add one above.")
 else:
     st.subheader("Pets & Tasks")
+
+    # ── Filter & sort controls ──────────────────────────────────────────────
+    fc1, fc2 = st.columns(2)
+    with fc1:
+        filter_status = st.selectbox(
+            "Filter by Status", ["All", "Pending", "Completed"], key="filter_status"
+        )
+    with fc2:
+        sort_by = st.selectbox(
+            "Sort by", ["Default", "Priority", "Due Date"], key="sort_by"
+        )
+
+    _scheduler = Scheduler(owner)
+
     for pet in pets:
         with st.expander(f"{pet.name} ({pet.species}, {pet.breed}, Age {pet.age})", expanded=True):
             tasks = pet.list_tasks()
+
+            # Apply filter
+            if filter_status == "Pending":
+                tasks = [t for t in tasks if not t.is_complete]
+            elif filter_status == "Completed":
+                tasks = [t for t in tasks if t.is_complete]
+
+            # Apply sort
+            if sort_by == "Priority":
+                tasks = _scheduler.sort_by_priority(tasks)
+            elif sort_by == "Due Date":
+                tasks = _scheduler.sort_by_time(tasks)
+
             if tasks:
-                rows = [
-                    {
-                        "Description": t.description,
-                        "Duration (Min)": t.duration_minutes,
-                        "Priority": t.priority.value.capitalize(),
-                        "Frequency": t.frequency.capitalize(),
-                        "Due": str(t.due_date) if t.due_date else "—",
-                        "Done": "✓" if t.is_complete else "",
-                    }
-                    for t in tasks
-                ]
-                st.table(rows)
+                # Header row
+                h0, h1, h2, h3, h4, h5 = st.columns([4, 2, 2, 2, 2, 1])
+                h0.markdown("**Description**")
+                h1.markdown("**Duration**")
+                h2.markdown("**Priority**")
+                h3.markdown("**Frequency**")
+                h4.markdown("**Due**")
+                h5.markdown("**Done**")
+                st.divider()
+
+                for t in tasks:
+                    c0, c1, c2, c3, c4, c5 = st.columns([4, 2, 2, 2, 2, 1])
+                    label = t.description
+                    if t.is_complete:
+                        label = f"~~{label}~~"
+                    c0.markdown(label)
+                    c1.write(f"{t.duration_minutes} min")
+                    _priority_emoji = {"high": "🔴", "medium": "🟡", "low": "🟢"}
+                    _emoji = _priority_emoji.get(t.priority.value.lower(), "")
+                    c2.markdown(f"{_emoji} {t.priority.value.capitalize()}")
+                    c3.write(t.frequency.capitalize())
+                    c4.write(str(t.due_date) if t.due_date else "—")
+                    if t.is_complete:
+                        c5.write("✓")
+                    else:
+                        if c5.button("✓", key=f"done_{t.id}", help="Mark complete"):
+                            t.mark_complete()
+                            st.rerun()
             else:
-                st.caption("No tasks yet for this pet.")
+                st.caption("No tasks match the current filter.")
 
             # Add-task form scoped to this pet
             st.markdown("**Add a Task**")
@@ -141,7 +184,7 @@ else:
                     "Pet": t.pet.name if t.pet else "—",
                     "Task": t.description,
                     "Duration (Min)": t.duration_minutes,
-                    "Priority": t.priority.value.capitalize(),
+                    "Priority": {"high": "🔴 High", "medium": "🟡 Medium", "low": "🟢 Low"}.get(t.priority.value.lower(), t.priority.value.capitalize()),
                 }
                 for t in plan.tasks
             ]

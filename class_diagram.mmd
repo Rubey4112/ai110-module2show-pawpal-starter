@@ -1,4 +1,47 @@
 classDiagram
+    class Priority {
+        <<enumeration>>
+        HIGH
+        MEDIUM
+        LOW
+    }
+
+    class SchedulePlan {
+        +List~Task~ tasks
+        +List~String~ reasoning
+        +int remaining_minutes
+    }
+
+    class Task {
+        +String id
+        +String description
+        +int duration_minutes
+        +Priority priority
+        +String frequency
+        +date due_date
+        +bool is_complete
+        +Optional~int~ start_minute
+        +int end_minute
+        +Optional~Pet~ pet
+        +mark_complete() Optional~Task~
+        +is_overdue() bool
+        +is_due_today() bool
+    }
+
+    class Pet {
+        +String name
+        +String species
+        +String breed
+        +int age
+        +List~Task~ tasks
+        +Optional~Owner~ owner
+        +add_task(task: Task) void
+        +remove_task(task_id: String) void
+        +modify_task(task_id: String, updates: dict) void
+        +list_tasks() List~Task~
+        +filter_by_status(completed: bool) List~Task~
+    }
+
     class Owner {
         +String name
         +String email
@@ -10,39 +53,23 @@ classDiagram
         +get_all_tasks() List~Task~
     }
 
-    class Pet {
-        +String name
-        +String species
-        +String breed
-        +int age
-        +List~Task~ tasks
-        +add_task(task: Task) void
-        +remove_task(task_description: String) void
-        +modify_task(task_description: String, updates: dict) void
-        +list_tasks() List~Task~
-    }
-
-    class Task {
-        +String description
-        +int duration_minutes
-        +String priority
-        +String frequency
-        +date due_date
-        +bool is_complete
-        +mark_complete() void
-        +is_overdue() bool
-        +is_due_today() bool
-    }
-
     class Scheduler {
         +Owner owner
         +int total_minutes_available
-        +generate_plan() List~Task~
-        +get_reasoning() List~String~
-        +filter_by_priority(priority: String) List~Task~
+        +Optional~SchedulePlan~ _cached_plan
+        +generate_plan() SchedulePlan
+        +detect_conflicts() List~Tuple~
+        +filter_by_status(completed: bool) List~Task~
+        +filter_by_priority(priority: Priority) List~Task~
         +sort_by_priority() List~Task~
+        +sort_by_time() List~Task~
+        +remaining_minutes(tasks: List~Task~) int
     }
 
     Owner "1" --> "1..*" Pet : owns
+    Pet "0..*" --> "0..1" Owner : back-ref
     Pet "1" --> "0..*" Task : has
+    Task "0..*" --> "0..1" Pet : back-ref
     Scheduler "1" --> "1" Owner : schedules for
+    Scheduler "1" --> "1" SchedulePlan : produces
+    Task "*" --> "1" Priority : uses

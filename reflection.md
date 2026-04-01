@@ -50,10 +50,14 @@ One of my scheduler it sort task sequentially. This make the scheduling logic a 
 - How did you use AI tools during this project (for example: design brainstorming, debugging, refactoring)?
 - What kinds of prompts or questions were most helpful?
 
+I used AI tools to help me brainstorm, design, generate test for my app. The most helpful kind of prompts are one that I asked it to generate me multiple different implemntation options so that I can chose between them.
+
 **b. Judgment and verification**
 
 - Describe one moment where you did not accept an AI suggestion as-is.
 - How did you evaluate or verify what the AI suggested?
+
+When the AI suggested me on how I should 
 
 ---
 
@@ -64,10 +68,14 @@ One of my scheduler it sort task sequentially. This make the scheduling logic a 
 - What behaviors did you test?
 - Why were these tests important?
 
+I test that the scheduling system sort the tasks correctly since that is the minimum of what it needed to do.
+
 **b. Confidence**
 
 - How confident are you that your scheduler works correctly?
 - What edge cases would you test next if you had more time?
+
+I am 4/5 confident that this scheduler works correctly. I would test more on what would happen if the user tried to create multiday task.
 
 ---
 
@@ -77,10 +85,16 @@ One of my scheduler it sort task sequentially. This make the scheduling logic a 
 
 - What part of this project are you most satisfied with?
 
+I found how to use AI as a codesigner and tester for a project. I learned how to utilize /init to create a CLAUDE.md file.
+
 **b. What you would improve**
 
 - If you had another iteration, what would you improve or redesign?
 
+I would definitely redesigned the UI.
+
 **c. Key takeaway**
 
 - What is one important thing you learned about designing systems or working with AI on this project?
+
+Don't take AI suggestion at face value, review your options and chose the one that has the tradeoff you're looking for
