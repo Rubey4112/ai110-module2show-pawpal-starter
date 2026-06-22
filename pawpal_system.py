@@ -80,6 +80,22 @@ class Scheduler:
                 time_remaining -= task.duration
         return plan
 
+    def filter_by_completion(self, owner: Owner, completed: bool) -> list[Task]:
+        return [
+            task
+            for pet in owner.pets
+            for task in pet.tasks
+            if task.is_completed == completed
+        ]
+
+    def filter_by_pet_name(self, owner: Owner, pet_name: str) -> list[Task]:
+        return [
+            task
+            for pet in owner.pets
+            if pet.name == pet_name
+            for task in pet.tasks
+        ]
+
     def display_plan(self, owner: Owner) -> None:
         plan = self.generate_plan(owner)
         if not plan:
