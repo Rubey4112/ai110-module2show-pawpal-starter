@@ -67,14 +67,26 @@ class Owner:
 
 class Scheduler:
     def generate_plan(self, owner: Owner) -> list[Task]:
-        pending = [task for pet in owner.pets for task in pet.pending_tasks]
-        return sorted(pending, key=lambda t: t.priority, reverse=True)
+        pending = sorted(
+            [task for pet in owner.pets for task in pet.pending_tasks],
+            key=lambda t: t.priority,
+            reverse=True,
+        )
+        plan = []
+        time_remaining = owner.available_time
+        for task in pending:
+            if task.duration <= time_remaining:
+                plan.append(task)
+                time_remaining -= task.duration
+        return plan
 
     def display_plan(self, owner: Owner) -> None:
         plan = self.generate_plan(owner)
         if not plan:
             print(f"No pending tasks for {owner.name}.")
             return
+        total_time = sum(t.duration for t in plan)
+        remaining = owner.available_time - total_time
         print(f"--- Care Plan for {owner.name} ---")
         for i, task in enumerate(plan, start=1):
             recurrence = "recurring" if task.is_recurring else "one-time"
@@ -82,3 +94,4 @@ class Scheduler:
                 f"{i}. [{task.priority}] {task.name} "
                 f"({task.duration} min, {recurrence})"
             )
+        print(f"\nTotal: {total_time} min | Remaining: {remaining} min")
