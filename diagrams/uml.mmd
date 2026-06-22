@@ -1,14 +1,18 @@
 classDiagram
     class Owner {
         +String name
-        +String availableTime
+        +int availableTime
         +List~Pet~ pets
+        +addPet(pet: Pet) void
+        +deletePet(pet: Pet) void
     }
 
     class Pet {
         +String name
         +String species
         +List~Task~ tasks
+        +addTask(task: Task) void
+        +deleteTask(task: Task) void
     }
 
     class Task {

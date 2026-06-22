@@ -8,24 +8,27 @@
 - What classes did you include, and what responsibilities did you assign to each?
 
 Classes:
-- Owner
+- Owner: Manages multiple pets and provides access to all their tasks.
    - Own a list of Pets (A pet without owner wouldn't make sense)
    - Available time
+   - Add/Delete pet
 
-- Pet
+- Pet: Stores pet details and a list of tasks.
    - Name
    - Own a list of Tasks (tasks without the pet it was assigned to wouldn't make sense)
    - species
+   - Add/Delete task
 
-- Task
+- Task: Represents a single activity (description, time, frequency, completion status). 
    - Name
    - Duration
    - Priority
    - is recurring
    - Be able to get marked as complete
 
-- Scheduler
+- Scheduler: The "Brain" that retrieves, organizes, and manages tasks across pets.
    - Generate Plan
+      - Put plan with highest priority first
 
 
 **b. Design changes**
