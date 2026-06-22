@@ -33,8 +33,11 @@ Classes:
 
 **b. Design changes**
 
-- Did your design change during implementation?
-- If yes, describe at least one change and why you made it.
+Yes, the design changed during implementation in two ways:
+
+1. **`Scheduler` gained filter methods.** The initial UML only defined `generatePlan`, but during implementation it became clear that querying tasks by completion status or by pet name was a natural Scheduler responsibility. Adding `filterByCompletion` and `filterByPetName` kept that logic centralized rather than scattered across callers.
+
+2. **`Task` added an `is_completed` property.** The initial design only had `markComplete()`, but a readable `is_completed` property was needed so the scheduler and pet could filter tasks without exposing the private `_completed` field directly.
 
 ---
 
