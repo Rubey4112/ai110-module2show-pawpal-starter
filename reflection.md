@@ -7,6 +7,27 @@
 - Briefly describe your initial UML design.
 - What classes did you include, and what responsibilities did you assign to each?
 
+Classes:
+- Owner
+   - Own a list of Pets (A pet without owner wouldn't make sense)
+   - Available time
+
+- Pet
+   - Name
+   - Own a list of Tasks (tasks without the pet it was assigned to wouldn't make sense)
+   - species
+
+- Task
+   - Name
+   - Duration
+   - Priority
+   - is recurring
+   - Be able to get marked as complete
+
+- Scheduler
+   - Generate Plan
+
+
 **b. Design changes**
 
 - Did your design change during implementation?
