@@ -25,6 +25,8 @@ classDiagram
 
     class Scheduler {
         +generatePlan(owner: Owner) List~Task~
+        +filterByCompletion(owner: Owner, completed: bool) List~Task~
+        +filterByPetName(owner: Owner, petName: String) List~Task~
     }
 
     Owner "1" *-- "many" Pet : owns
